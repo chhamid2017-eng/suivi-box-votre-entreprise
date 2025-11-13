@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner Box - Interface Magasin</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f5f5f5;
+            padding: 15px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 100%;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .selection-section {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .magasin-select {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            margin: 10px 0;
+            border: 2px solid #3498db;
+            border-radius: 5px;
+            background: white;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-primary { background: #3498db; }
+        .btn-success { background: #27ae60; }
+        .btn-warning { background: #f39c12; }
+
+        .interface-scan {
+            display: none;
+            padding: 20px;
+        }
+
+        .scanner-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            margin: 10px 0;
+            border: 2px solid #3498db;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .notification {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .success { 
+            background: #d4edda; 
+            color: #155724; 
+            border: 1px solid #c3e6cb; 
+        }
+
+        .warning { 
+            background: #fff3cd; 
+            color: #856404; 
+            border: 1px solid #ffeaa7; 
+        }
+
+        .error { 
+            background: #f8d7da; 
+            color: #721c24; 
+            border: 1px solid #f5c6cb; 
+        }
+
+        .info { 
+            background: #d1ecf1; 
+            color: #0c5460; 
+            border: 1px solid #bee5eb; 
+        }
+
+        .transfert-item {
+            background: #e8f4fd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .transfert-item:hover {
+            transform: translateX(5px);
+            background: #d1ecf1;
+        }
+
+        .transfert-item.completed {
+            border-left-color: #27ae60;
+            background: #d4edda;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #27ae60;
+            transition: width 0.3s ease;
+        }
+
+        .box-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 15px 0;
+        }
+
+        .box-item {
+            padding: 8px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-radius: 3px;
+            border-left: 3px solid #3498db;
+        }
+
+        .box-item.scanned {
+            border-left-color: #27ae60;
+            background: #d4edda;
+        }
+
+        .logout-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- En-tête -->
+        <div class="header">
+            <h1>🏪 Scanner des Box</h1>
+            <p>Confirmez la réception de vos box</p>
+        </div>
+
+        <!-- Sélection du magasin -->
+        <div class="selection-section" id="selectionMagasin">
+            <h3>🔒 Sélectionnez votre magasin</h3>
+            <select class="magasin-select" id="nomMagasin">
+                <option value="">-- Choisissez votre magasin --</option>
+                <option value="BEZ">BEZ</option>
+                <option value="AUDIN">AUDIN</option>
+                <option value="CHERAGA">CHERAGA</option>
+                <option value="ARDIS">ARDIS</option>
+                <option value="SETIF">SETIF</option>
+                <option value="CITY CENTER">CITY CENTER</option>
+                <option value="ORAN">ORAN</option>
+                <option value="AZ">AZ</option>
+                <option value="BIS">BIS</option>
+                <option value="GRDP">GRDP</option>
+            </select>
+            <button class="btn btn-primary" onclick="connecterMagasin()">
+                🚀 Commencer à Scanner
+            </button>
+        </div>
+
+        <!-- Interface de scan -->
+        <div class="interface-scan" id="interfaceScan">
+            <div id="notificationsArea"></div>
+            
+            <h3>📦 Transferts en Attente</h3>
+            <div id="listeTransferts">
+                <!-- Liste des transferts -->
+            </div>
+
+            <div id="zoneScan" style="display: none;">
+                <h3>📱 Scanner un Box</h3>
+                <input type="text" class="scanner-input" id="inputScanner" 
+                       placeholder="Scannez le code QR du box..." autocomplete="off">
+                <p style="text-align: center; color: #666; font-size: 14px;">
+                    ⚡ Appuyez sur ENTRÉE après chaque scan
+                </p>
+
+                <div id="progressionScan">
+                    <!-- Barre de progression -->
+                </div>
+
+                <div id="listeBox">
+                    <!-- Liste des box scannés -->
+                </div>
+
+                <button class="btn btn-success" onclick="confirmerReception()">
+                    ✅ Confirmer la Réception Complète
+                </button>
+            </div>
+
+            <button class="logout-btn" onclick="deconnecterMagasin()">
+                🔄 Changer de Magasin
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURATION
+        let magasinActuel = null;
+        let transfertActuel = null;
+        let transferts = [];
+
+        // CONNEXION MAGASIN
+        function connecterMagasin() {
+            const select = document.getElementById('nomMagasin');
+            magasinActuel = select.value;
+            
+            if (!magasinActuel) {
+                afficherNotification('Veuillez sélectionner votre magasin', 'error');
+                return;
+            }
+
+            // Masquer sélection, afficher interface
+            document.getElementById('selectionMagasin').style.display = 'none';
+            document.getElementById('interfaceScan').style.display = 'block';
+
+            // Charger les transferts
+            chargerTransferts();
+            
+            // Actualisation automatique
+            setInterval(chargerTransferts, 10000); // Toutes les 10 secondes
+            
+            afficherNotification(`Bienvenue ${magasinActuel} !`, 'success');
+        }
+
+        function deconnecterMagasin() {
+            magasinActuel = null;
+            transfertActuel = null;
+            document.getElementById('selectionMagasin').style.display = 'block';
+            document.getElementById('interfaceScan').style.display = 'none';
+            document.getElementById('nomMagasin').value = '';
+            document.getElementById('notificationsArea').innerHTML = '';
+        }
+
+        // CHARGEMENT DES TRANSFERTS
+        function chargerTransferts() {
+            try {
+                // Récupérer depuis le stockage commun
+                const tousTransferts = JSON.parse(localStorage.getItem('transferts_centraux')) || [];
+                
+                // Filtrer pour ce magasin
+                transferts = tousTransferts.filter(t => 
+                    t.magasin === magasinActuel && t.statut === 'envoye'
+                );
+                
+                afficherTransferts();
+            } catch (error) {
+                console.error('Erreur chargement:', error);
+                afficherNotification('Erreur de chargement', 'error');
+            }
+        }
+
+        function afficherTransferts() {
+            const liste = document.getElementById('listeTransferts');
+            
+            if (transferts.length === 0) {
+                liste.innerHTML = '<div class="notification info">Aucun transfert en attente</div>';
+                document.getElementById('zoneScan').style.display = 'none';
+                return;
+            }
+
+            liste.innerHTML = transferts.map(transfert => {
+                const scanne = transfert.scanne || 0;
+                const total = transfert.nombreBox;
+                const pourcentage = Math.round((scanne / total) * 100);
+                
+                return `
+                    <div class="transfert-item ${scanne === total ? 'completed' : ''}" 
+                         onclick="selectionnerTransfert('${transfert.id}')">
+                        <h4>Transfert ${transfert.bon}</h4>
+                        <p>📅 Envoyé: ${new Date(transfert.dateEnvoi).toLocaleDateString()}</p>
+                        <p>📦 ${total} box à recevoir</p>
+                        <p>✅ ${scanne} déjà scannés</p>
+                        ${scanne > 0 ? `
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${pourcentage}%"></div>
+                            </div>
+                            <small>${pourcentage}% complété</small>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // SÉLECTION ET SCAN
+        function selectionnerTransfert(transfertId) {
+            transfertActuel = transferts.find(t => t.id === transfertId);
+            
+            if (!transfertActuel) {
+                afficherNotification('Transfert non trouvé', 'error');
+                return;
+            }
+
+            // Afficher la zone de scan
+            document.getElementById('zoneScan').style.display = 'block';
+            document.getElementById('inputScanner').focus();
+            
+            // Mettre à jour l'affichage
+            mettreAJourProgression();
+            afficherListeBox();
+            
+            afficherNotification(`Transfert ${transfertActuel.bon} sélectionné`, 'success');
+        }
+
+        // GESTION DU SCAN
+        document.getElementById('inputScanner').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                traiterScan(this.value);
+                this.value = '';
+            }
+        });
+
+        function traiterScan(qrCode) {
+            if (!transfertActuel) {
+                afficherNotification('Veuillez d\'abord sélectionner un transfert', 'warning');
+                return;
+            }
+
+            // Simulation de traitement QR code
+            // En réalité, le QR code contiendrait: "BON:1-S-6-|MAG:BEZ|BOX:001|QTE:25"
+            const boxNonScanne = transfertActuel.boxes.find(box => !box.scanne);
+            
+            if (!boxNonScanne) {
+                afficherNotification('❌ Tous les box sont déjà scannés!', 'warning');
+                return;
+            }
+
+            // Marquer comme scanné
+            boxNonScanne.scanne = true;
+            boxNonScanne.dateScan = new Date().toISOString();
+            transfertActuel.scanne = (transfertActuel.scanne || 0) + 1;
+
+            // Sauvegarder
+            sauvegarderProgression();
+
+            // Mettre à jour l'interface
+            mettreAJourProgression();
+            afficherListeBox();
+
+            afficherNotification(`✅ BOX ${boxNonScanne.numero} scanné avec succès!`, 'success');
+
+            // Vérifier si complet
+            if (transfertActuel.scanne === transfertActuel.nombreBox) {
+                afficherNotification('🎉 Tous les box ont été scannés! Confirmez la réception.', 'success');
+            }
+        }
+
+        function mettreAJourProgression() {
+            if (!transfertActuel) return;
+
+            const scanne = transfertActuel.scanne || 0;
+            const total = transfertActuel.nombreBox;
+            const pourcentage = Math.round((scanne / total) * 100);
+
+            document.getElementById('progressionScan').innerHTML = `
+                <div class="notification info">
+                    <h4>Progression du Transfert ${transfertActuel.bon}</h4>
+                    <p><strong>${scanne}/${total} box scannés</strong></p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${pourcentage}%"></div>
+                    </div>
+                    <p>${pourcentage}% complété</p>
+                    ${scanne === total ? '<p style="color: #27ae60; font-weight: bold;">✅ Prêt à confirmer!</p>' : ''}
+                </div>
+            `;
+        }
+
+        function afficherListeBox() {
+            if (!transfertActuel) return;
+
+            const liste = document.getElementById('listeBox');
+            liste.innerHTML = '<h4>📋 Liste des Box:</h4>' + 
+                transfertActuel.boxes.map(box => `
+                    <div class="box-item ${box.scanne ? 'scanned' : ''}">
+                        📦 BOX ${box.numero} - Qte: ${box.quantite}
+                        ${box.scanne ? 
+                            `<br><small style="color: #27ae60;">✅ Scanné à ${new Date(box.dateScan).toLocaleTimeString()}</small>` : 
+                            '<br><small style="color: #e74c3c;">⏳ En attente</small>'
+                        }
+                    </div>
+                `).join('');
+        }
+
+        // CONFIRMATION
+        function confirmerReception() {
+            if (!transfertActuel) {
+                afficherNotification('Aucun transfert sélectionné', 'error');
+                return;
+            }
+
+            const scanne = transfertActuel.scanne || 0;
+            const total = transfertActuel.nombreBox;
+
+            if (scanne < total) {
+                afficherNotification(`Il reste ${total - scanne} box à scanner!`, 'warning');
+                return;
+            }
+
+            if (confirm(`Confirmez-vous la réception complète de ${total} box?`)) {
+                // Marquer comme reçu
+                transfertActuel.statut = 'recu';
+                transfertActuel.dateReception = new Date().toISOString();
+                transfertActuel.confirme = true;
+
+                // Sauvegarder
+                sauvegarderProgression();
+
+                afficherNotification('✅ Réception confirmée avec succès!', 'success');
+                
+                // Recharger l'interface
+                setTimeout(() => {
+                    chargerTransferts();
+                    transfertActuel = null;
+                    document.getElementById('zoneScan').style.display = 'none';
+                    document.getElementById('progressionScan').innerHTML = '';
+                    document.getElementById('listeBox').innerHTML = '';
+                }, 2000);
+            }
+        }
+
+        // SAUVEGARDE
+        function sauvegarderProgression() {
+            try {
+                const tousTransferts = JSON.parse(localStorage.getItem('transferts_centraux')) || [];
+                const index = tousTransferts.findIndex(t => t.id === transfertActuel.id);
+                
+                if (index !== -1) {
+                    tousTransferts[index] = transfertActuel;
+                    localStorage.setItem('transferts_centraux', JSON.stringify(tousTransferts));
+                }
+            } catch (error) {
+                console.error('Erreur sauvegarde:', error);
+                afficherNotification('Erreur de sauvegarde', 'error');
+            }
+        }
+
+        // NOTIFICATIONS
+        function afficherNotification(message, type) {
+            const notifications = document.getElementById('notificationsArea');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            
+            notifications.appendChild(notification);
+            
+            // Supprimer après 5 secondes
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 5000);
+        }
+
+        // CHARGEMENT INITIAL
+        document.addEventListener('DOMContentLoaded', function() {
+            // Focus sur la sélection du magasin
+            document.getElementById('nomMagasin').focus();
+            
+            // Raccourci Entrée pour la connexion
+            document.getElementById('nomMagasin').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    connecterMagasin();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
