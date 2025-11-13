@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interface Dépôt - Suivi des Box</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .password-section {
+            text-align: center;
+            padding: 50px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .password-input {
+            padding: 15px;
+            font-size: 18px;
+            margin: 10px 0;
+            width: 300px;
+            border: none;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .login-btn {
+            padding: 15px 30px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .login-btn:hover {
+            background: #219a52;
+        }
+
+        .error-msg {
+            color: #e74c3c;
+            margin-top: 10px;
+            display: none;
+        }
+
+        /* Interface principale */
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .tabs {
+            display: flex;
+            background: #34495e;
+            border-bottom: 2px solid #2c3e50;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            background: #34495e;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .tab.active {
+            background: #2c3e50;
+            border-bottom: 3px solid #3498db;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Styles pour le formulaire */
+        .form-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 5px;
+        }
+
+        .btn-primary { background: #3498db; color: white; }
+        .btn-success { background: #27ae60; color: white; }
+        .btn-warning { background: #f39c12; color: white; }
+        .btn-danger { background: #e74c3c; color: white; }
+
+        /* Tableau de bord */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #3498db;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .card.alert {
+            border-left-color: #e74c3c;
+            background: #fdf2f2;
+        }
+
+        .card.success {
+            border-left-color: #27ae60;
+            background: #f2fdf2;
+        }
+
+        .notification-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .notification-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border-left: 3px solid #3498db;
+        }
+
+        .notification-item.success {
+            border-left-color: #27ae60;
+            background: #d4edda;
+        }
+
+        .notification-item.warning {
+            border-left-color: #f39c12;
+            background: #fff3cd;
+        }
+
+        .notification-item.danger {
+            border-left-color: #e74c3c;
+            background: #f8d7da;
+        }
+
+        /* Prévisualisation étiquettes */
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .etiquette-preview {
+            border: 2px solid #bdc3c7;
+            padding: 15px;
+            border-radius: 8px;
+            background: white;
+            text-align: center;
+        }
+
+        .qr-preview {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 10px;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .password-input {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Section de connexion -->
+        <div class="password-section" id="loginSection">
+            <h1>🔐 Interface Dépôt</h1>
+            <p>Accès réservé au personnel autorisé</p>
+            <input type="password" class="password-input" id="passwordInput" placeholder="Mot de passe dépôt">
+            <br>
+            <button class="login-btn" onclick="verifierPassword()">Se Connecter</button>
+            <p class="error-msg" id="errorMsg">Mot de passe incorrect</p>
+        </div>
+
+        <!-- Interface principale (cachée au début) -->
+        <div id="interfaceDepot" style="display: none;">
+            <div class="header">
+                <h1>🏭 Interface Dépôt - Suivi des Box</h1>
+                <p>Connecté | <button class="btn btn-danger" onclick="deconnexion()">Déconnexion</button></p>
+            </div>
+
+            <!-- Navigation par onglets -->
+            <div class="tabs">
+                <button class="tab active" onclick="ouvrirOnglet('creation')">📦 Créer Transfert</button>
+                <button class="tab" onclick="ouvrirOnglet('suivi')">📊 Suivi en Direct</button>
+                <button class="tab" onclick="ouvrirOnglet('historique')">📋 Historique</button>
+            </div>
+
+            <!-- Onglet Création de Transfert -->
+            <div id="creation" class="tab-content active">
+                <div class="form-section">
+                    <h3>🎫 Créer un Nouveau Transfert</h3>
+                    
+                    <div class="form-group">
+                        <label for="bon">N° BON:</label>
+                        <input type="text" id="bon" required value="1-S-6-">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="magasin">MAGASIN DESTINATAIRE:</label>
+                        <select id="magasin" required>
+                            <option value="BEZ">BEZ</option>
+                            <option value="AUDIN">AUDIN</option>
+                            <option value="CHERAGA">CHERAGA</option>
+                            <option value="ARDIS">ARDIS</option>
+                            <option value="SETIF">SETIF</option>
+                            <option value="CITY CENTER">CITY CENTER</option>
+                            <option value="ORAN">ORAN</option>
+                            <option value="AZ">AZ</option>
+                            <option value="BIS">BIS</option>
+                            <option value="GRDP">GRDP</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="nombreBox">NOMBRE DE BOX:</label>
+                        <input type="number" id="nombreBox" min="1" max="100" value="10">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="quantiteDefaut">QUANTITÉ PAR DÉFAUT:</label>
+                        <input type="number" id="quantiteDefaut" value="1" min="1">
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <button class="btn btn-success" onclick="creerTransfert()">
+                            📤 Créer et Notifier
+                        </button>
+                        <button class="btn btn-primary" onclick="genererEtiquettes()">
+                            🖨️ Générer Étiquettes
+                        </button>
+                    </div>
+                </div>
+
+                <div id="previewEtiquettes" style="display: none;">
+                    <h3>📄 Aperçu des Étiquettes</h3>
+                    <div class="preview-grid" id="gridEtiquettes">
+                        <!-- Étiquettes générées ici -->
+                    </div>
+                    <button class="btn btn-warning" onclick="imprimerEtiquettes()">
+                        🖨️ Imprimer les Étiquettes
+                    </button>
+                </div>
+            </div>
+
+            <!-- Onglet Suivi en Direct -->
+            <div id="suivi" class="tab-content">
+                <div class="dashboard">
+                    <div class="card">
+                        <h3>📦 Transferts Envoyés</h3>
+                        <div id="transfertsEnvoyes" class="notification-list">
+                            <!-- Liste des transferts -->
+                        </div>
+                    </div>
+
+                    <div class="card success">
+                        <h3>✅ Transferts Complétés</h3>
+                        <div id="transfertsCompletes" class="notification-list">
+                            <!-- Transferts finis -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card alert">
+                    <h3>⚠️ Transferts en Cours</h3>
+                    <div id="transfertsEnCours" class="notification-list">
+                        <!-- Transferts en cours -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Onglet Historique -->
+            <div id="historique" class="tab-content">
+                <h3>📋 Historique des Transferts</h3>
+                <button class="btn btn-primary" onclick="exporterHistorique()">
+                    📊 Exporter Historique
+                </button>
+                <div id="listeHistorique" class="notification-list" style="margin-top: 20px;">
+                    <!-- Historique -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURATION
+        const MOT_DE_PASSE_DEPOT = "@@raiderHAMID1985";
+        let transferts = JSON.parse(localStorage.getItem('transferts_centraux')) || [];
+        let notifications = JSON.parse(localStorage.getItem('notifications_depot')) || [];
+
+        // AUTHENTIFICATION
+        function verifierPassword() {
+            const password = document.getElementById('passwordInput').value;
+            if (password === MOT_DE_PASSE_DEPOT) {
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('interfaceDepot').style.display = 'block';
+                chargerInterface();
+            } else {
+                document.getElementById('errorMsg').style.display = 'block';
+                document.getElementById('passwordInput').value = '';
+            }
+        }
+
+        function deconnexion() {
+            document.getElementById('loginSection').style.display = 'block';
+            document.getElementById('interfaceDepot').style.display = 'none';
+            document.getElementById('passwordInput').value = '';
+            document.getElementById('errorMsg').style.display = 'none';
+        }
+
+        // NAVIGATION
+        function ouvrirOnglet(ongletId) {
+            document.querySelectorAll('.tab-content').forEach(onglet => {
+                onglet.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.getElementById(ongletId).classList.add('active');
+            event.target.classList.add('active');
+
+            if (ongletId === 'suivi') {
+                actualiserSuivi();
+            } else if (ongletId === 'historique') {
+                chargerHistorique();
+            }
+        }
+
+        // CRÉATION DE TRANSFERT
+        function creerTransfert() {
+            const bon = document.getElementById('bon').value;
+            const magasin = document.getElementById('magasin').value;
+            const nombreBox = parseInt(document.getElementById('nombreBox').value);
+            const quantiteDefaut = parseInt(document.getElementById('quantiteDefaut').value);
+
+            if (!bon || !magasin || !nombreBox) {
+                alert('Veuillez remplir tous les champs');
+                return;
+            }
+
+            // Créer le transfert
+            const transfert = {
+                id: Date.now().toString(),
+                bon: bon,
+                magasin: magasin,
+                nombreBox: nombreBox,
+                quantiteDefaut: quantiteDefaut,
+                dateEnvoi: new Date().toISOString(),
+                statut: 'envoye',
+                boxes: [],
+                scanne: 0,
+                dateReception: null,
+                confirme: false
+            };
+
+            // Générer les boxes
+            for (let i = 1; i <= nombreBox; i++) {
+                transfert.boxes.push({
+                    numero: i.toString().padStart(3, '0'),
+                    quantite: quantiteDefaut,
+                    scanne: false,
+                    dateScan: null
+                });
+            }
+
+            transferts.push(transfert);
+            sauvegarderDonnees();
+
+            // Notifier
+            ajouterNotification('success', `✅ Transfert ${bon} créé pour ${magasin} (${nombreBox} box)`);
+
+            alert(`Transfert ${bon} créé avec succès!`);
+            genererEtiquettes();
+        }
+
+        function genererEtiquettes() {
+            const dernierTransfert = transferts[transferts.length - 1];
+            if (!dernierTransfert) {
+                alert('Créez d\'abord un transfert');
+                return;
+            }
+
+            const grid = document.getElementById('gridEtiquettes');
+            grid.innerHTML = '';
+
+            dernierTransfert.boxes.forEach(box => {
+                const qrData = `BON:${dernierTransfert.bon}|MAG:${dernierTransfert.magasin}|BOX:${box.numero}|QTE:${box.quantite}`;
+                const qrUrl = `https://quickchart.io/qr?text=${encodeURIComponent(qrData)}&size=100&margin=1`;
+                
+                grid.innerHTML += `
+                    <div class="etiquette-preview">
+                        <div class="qr-preview">
+                            <img src="${qrUrl}" alt="QR Code" style="width: 100px; height: 100px;">
+                        </div>
+                        <strong>${dernierTransfert.bon}</strong><br>
+                        <strong>BOX ${box.numero}</strong><br>
+                        <small>${dernierTransfert.magasin}</small><br>
+                        <small>Qte: ${box.quantite}</small>
+                    </div>
+                `;
+            });
+
+            document.getElementById('previewEtiquettes').style.display = 'block';
+        }
+
+        function imprimerEtiquettes() {
+            window.print();
+        }
+
+        // SUIVI EN TEMPS RÉEL
+        function actualiserSuivi() {
+            const transfertsEnvoyes = transferts.filter(t => t.statut === 'envoye');
+            const transfertsCompletes = transferts.filter(t => t.statut === 'recu');
+            const transfertsEnCours = transferts.filter(t => t.statut === 'envoye' && t.scanne > 0);
+
+            // Transferts envoyés
+            document.getElementById('transfertsEnvoyes').innerHTML = transfertsEnvoyes.map(transfert => `
+                <div class="notification-item">
+                    <strong>${transfert.bon}</strong> → ${transfert.magasin}<br>
+                    <small>${transfert.nombreBox} box | ${transfert.scanne} scannés</small>
+                </div>
+            `).join('') || '<p>Aucun transfert envoyé</p>';
+
+            // Transferts complétés
+            document.getElementById('transfertsCompletes').innerHTML = transfertsCompletes.map(transfert => `
+                <div class="notification-item success">
+                    <strong>${transfert.bon}</strong> → ${transfert.magasin}<br>
+                    <small>Complété le ${new Date(transfert.dateReception).toLocaleDateString()}</small>
+                </div>
+            `).join('') || '<p>Aucun transfert complété</p>';
+
+            // Transferts en cours
+            document.getElementById('transfertsEnCours').innerHTML = transfertsEnCours.map(transfert => `
+                <div class="notification-item warning">
+                    <strong>${transfert.bon}</strong> → ${transfert.magasin}<br>
+                    <small>${transfert.scanne}/${transfert.nombreBox} box scannés</small>
+                    <small>(${Math.round((transfert.scanne/transfert.nombreBox)*100)}%)</small>
+                </div>
+            `).join('') || '<p>Aucun transfert en cours de scan</p>';
+        }
+
+        // HISTORIQUE
+        function chargerHistorique() {
+            const historique = document.getElementById('listeHistorique');
+            historique.innerHTML = transferts.map(transfert => `
+                <div class="notification-item ${transfert.statut === 'recu' ? 'success' : 'warning'}">
+                    <strong>${transfert.bon}</strong> → ${transfert.magasin}<br>
+                    <small>${transfert.nombreBox} box | ${transfert.scanne} scannés</small><br>
+                    <small>Statut: ${transfert.statut === 'recu' ? 'Complété' : 'En cours'}</small><br>
+                    <small>Envoyé: ${new Date(transfert.dateEnvoi).toLocaleDateString()}</small>
+                </div>
+            `).join('') || '<p>Aucun transfert dans l\'historique</p>';
+        }
+
+        function exporterHistorique() {
+            let csv = 'Bon,Magasin,Date Envoi,Total Box,Box Scannés,Statut\n';
+            
+            transferts.forEach(transfert => {
+                csv += `"${transfert.bon}","${transfert.magasin}","${new Date(transfert.dateEnvoi).toLocaleDateString()}",${transfert.nombreBox},${transfert.scanne},"${transfert.statut}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `historique_transferts_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        // FONCTIONS UTILITAIRES
+        function ajouterNotification(type, message) {
+            const notification = {
+                id: Date.now(),
+                type: type,
+                message: message,
+                date: new Date().toISOString()
+            };
+            
+            notifications.push(notification);
+            localStorage.setItem('notifications_depot', JSON.stringify(notifications));
+        }
+
+        function sauvegarderDonnees() {
+            localStorage.setItem('transferts_centraux', JSON.stringify(transferts));
+        }
+
+        function chargerInterface() {
+            actualiserSuivi();
+            chargerHistorique();
+            
+            // Actualisation automatique toutes les 5 secondes
+            setInterval(actualiserSuivi, 5000);
+        }
+
+        // Raccourci clavier Entrée pour le mot de passe
+        document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                verifierPassword();
+            }
+        });
+    </script>
+</body>
+</html>
